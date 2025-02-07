@@ -48,125 +48,63 @@ void setup() {
   BR.Motor_enablePIDMode(false);
   BL.Motor_enablePIDMode(false);
 
-  // pinMode(ledPin, arduino::OUTPUT);
-  // digitalWrite(ledPin, arduino::HIGH); // set the LED on
-  // doc["start_led"] = 0;
-  // doc["deadwheel_stats"]["x"] = 6;
-  // doc["deadwheel_stats"]["y"] = 100;
-  // doc["deadwheel_stats"]["heading"] = 1.0;
-
-  // serializeJson(doc, Serial3);
-  // doc.clear();
-
-  // delay(30);
+  pinMode(ledPin, arduino::OUTPUT);
 }
-
-int state = 0;
 
 void loop() {
 
-  switch (state) {
-  case 0:
-    if (Serial3.available() > 0) {
-      state = 1;
-    }
-    Serial3.write("HII!\n");
-    break;
-  case 1:
-    if (Serial3.available()) {
-      deserializeJson(doc, Serial3);
-      Serial3.flush();
+  if (Serial3.available())
+  {
+    digitalWrite(ledPin, arduino::HIGH);
 
-      doc.clear();
+    deserializeJson(doc, Serial3);
 
-      Serial3.write("HIII!\n");
+    int msg_type = doc["header"]["message_type"];
+
+    Serial3.flush();
+
+    switch (msg_type)
+    {
+      case 0:
+        doc.clear();
+        doc["start_led"] = 0;
+        doc["deadwheel_stats"]["x"] = 6;
+        doc["deadwheel_stats"]["y"] = 100;
+        doc["deadwheel_stats"]["heading"] = 1.0;
+        serializeJson(doc, Serial3);
+        break;
+      case 1:
+        run = doc["run"];
+
+        if (run) {
+          float fl_speed = doc["motor_speeds"][0];
+          float fr_speed = doc["motor_speeds"][1];
+          float bl_speed = doc["motor_speeds"][2];
+          float br_speed = doc["motor_speeds"][3];
+          FL.Motor_setGoalSpeed(fl_speed);
+          FR.Motor_setGoalSpeed(fr_speed);
+          BL.Motor_setGoalSpeed(bl_speed);
+          BR.Motor_setGoalSpeed(br_speed);
+      
+          bin_intake = doc["bin_intake"];
+        } else {
+          FL.Motor_setGoalSpeed(0);
+          FR.Motor_setGoalSpeed(0);
+          BL.Motor_setGoalSpeed(0);
+          BR.Motor_setGoalSpeed(0);
+          bin_intake = false;
+        }
+        break;
     }
-    break;
+
+    doc.clear();
+
+    digitalWrite(ledPin, arduino::LOW);
   }
 
-  // jet.execute(test);
-
-  // if (Serial3.available()) {
-
-  //   // serializeJson(doc, Serial);
-
-  //   run = doc["run"];
-
-  //   // if (!run) //{
-
-  //   FL.Motor_setGoalSpeed(atof(doc["motor_speeds"][0]));
-  //   FR.Motor_setGoalSpeed(atof(doc["motor_speeds"][1]));
-  //   BL.Motor_setGoalSpeed(atof(doc["motor_speeds"][2]));
-  //   BR.Motor_setGoalSpeed(atof(doc["motor_speeds"][3]));
-
-  //   bin_intake = doc["bin_intake"];
-  //   // } else {
-  //   //   FL.Motor_setGoalSpeed(0);
-  //   //   FR.Motor_setGoalSpeed(0);
-  //   //   BL.Motor_setGoalSpeed(0);
-  //   //   BR.Motor_setGoalSpeed(0);
-  //   //   bin_intake = false;
-  //   // }
-  //   delay(30);
-  //   doc.clear();
-
-  //   // TO-DO change this to turn on when the start LED is on and give actual
-  //   // deadwheel odo info Sending status
-  // }
-
-  // // UPDATE MOTOR POSITIONS WITH ENCODERS HERE:
-  // // FL.Moto_setPosition();
-
-  // // FL.Motor_update();
-  // // FR.Motor_update();
-  // // BL.Motor_update();
-  // // BR.Motor_update();
-
-  // doc["start_led"] = 0;
-  // doc["deadwheel_stats"]["x"] = 6;
-  // doc["deadwheel_stats"]["y"] = 100;
-  // doc["deadwheel_stats"]["heading"] = 1.0;
-
-  // serializeJson(doc, Serial3);
-  // // serial3.wrtie
-
-  // doc.clear();
-  // delay(30);
-
-  // if (!docTest.isNull()) {
-  //   int val = docTest["data"][0];
-  //   Serial3.println(val);
-  //   docTest.clear();
-  //   docTest["Status"] = "Good";
-  //   serializeJson(docTest, Serial3);
-  //   docTest.clear();
-  //   digitalWrite(ledPin, arduino::LOW); // set the LED off
-  //   delay(1000);
-  //   digitalWrite(ledPin, arduino::HIGH);
-  //   delay(1000);
-  // }
-
-  // put your main code here, to run repeatedly:
+  // UPDATE MOTOR POSITIONS WITH ENCODERS HERE:
+  FL.Motor_update();
+  FR.Motor_update();
+  BL.Motor_update();
+  BR.Motor_update();
 }
-
-// const int ledPin = 13;
-
-// the setup() method runs once, when the sketch starts
-
-// void setup() {
-//   initialize the digital pin as an output.
-//   Serial1.begin(9600);
-//   Serial1.println("Hello");
-//   pinMode(ledPin, arduino::OUTPUT);
-// }
-
-// the loop() methor runs over and over again,
-// as long as the board has power
-
-// void loop() {
-//   digitalWrite(ledPin, arduino::HIGH); // set the LED on
-//   delay(1000);
-//   Serial1.println("Hello");           // wait for a second
-//   digitalWrite(ledPin, arduino::LOW); // set the LED off
-//   delay(1000);                        // wait for a second
-// }
