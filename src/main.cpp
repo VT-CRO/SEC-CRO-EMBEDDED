@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <stdlib.h>
+#include "odometry.hpp"
 // put function declarations here:
 // int myFunction(int, int);
 
@@ -25,10 +26,28 @@ const int ledPin = 13;
 #define BL_PIN_1 19
 #define BL_PIN_2 18
 
+#define PIN1 4
+#define PIN2 5
+
+#define PIN3 6
+#define PIN4 7
+
+#define PIN5 8 
+#define PIN6 9
+
+#define CHANGE 4
+
+
 MotorControl FR = MotorControl(FR_PIN_1, FR_PIN_1);
 MotorControl FL = MotorControl(FL_PIN_1, FL_PIN_2);
 MotorControl BR = MotorControl(BR_PIN_1, BR_PIN_2);
 MotorControl BL = MotorControl(BL_PIN_1, BL_PIN_2);
+
+RotaryEncoder ENCODER1(PIN1, PIN2, RotaryEncoder::LatchMode::TWO03);
+RotaryEncoder ENCODER2(PIN3, PIN4, RotaryEncoder::LatchMode::TWO03);
+RotaryEncoder ENCODER3(PIN5, PIN6, RotaryEncoder::LatchMode::TWO03);
+
+Odometry odom = {&ENCODER1, &ENCODER2, &ENCODER3};
 
 devices activeDevices = {&FL, &FR, &BL, &BR};
 
@@ -47,6 +66,15 @@ void setup() {
   FL.Motor_enablePIDMode(false);
   BR.Motor_enablePIDMode(false);
   BL.Motor_enablePIDMode(false);
+
+  attachInterrupt(digitalPinToInterrupt(PIN1), updateLeftEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN2), updateLeftEncoder, CHANGE);
+
+  attachInterrupt(digitalPinToInterrupt(PIN3), updateRightEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN4), updateRightEncoder, CHANGE);
+
+  attachInterrupt(digitalPinToInterrupt(PIN5), updateCenterEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN6), updateCenterEncoder, CHANGE);
 
   pinMode(ledPin, arduino::OUTPUT);
 }
@@ -68,8 +96,9 @@ void loop() {
       case 0:
         doc.clear();
         doc["start_led"] = 0;
-        doc["deadwheel_stats"]["x"] = 6;
-        doc["deadwheel_stats"]["y"] = 100;
+        doc["deadwheel_stats"]["encoder_left"] = (odom.Encoder1)->getPosition();
+        doc["deadwheel_stats"]["encoder_right"] = (odom.Encoder2)->getPosition();
+        doc["deadwheel_stats"]["encoder_center"] = (odom.Encoder3)->getPosition();
         doc["deadwheel_stats"]["heading"] = 1.0;
         serializeJson(doc, Serial3);
         break;
@@ -107,4 +136,16 @@ void loop() {
   FR.Motor_update();
   BL.Motor_update();
   BR.Motor_update();
+}
+
+void updateLeftEncoder() {
+  ENCODER1.tick();
+}
+
+void updateRightEncoder(){
+  ENCODER2.tick();
+}
+
+void updateCenterEncoder() {
+  ENCODER3.tick();
 }
