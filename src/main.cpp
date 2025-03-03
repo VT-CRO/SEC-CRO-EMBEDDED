@@ -14,17 +14,17 @@ const char *test =
 const int ledPin = 13;
 
 // Motor Macros
-#define FR_PIN_1 1 // 1
-#define FR_PIN_2 0 // 2
+#define FR_PIN_1 18 // 1
+#define FR_PIN_2 19 // 2
 
-#define FL_PIN_1 3
-#define FL_PIN_2 2
+#define FL_PIN_1 0
+#define FL_PIN_2 1
 
-#define BR_PIN_1 23
-#define BR_PIN_2 22
+#define BR_PIN_1 22
+#define BR_PIN_2 23
 
-#define BL_PIN_1 19
-#define BL_PIN_2 18
+#define BL_PIN_1 2
+#define BL_PIN_2 3
 
 #define PIN1 4
 #define PIN2 5
@@ -37,8 +37,13 @@ const int ledPin = 13;
 
 #define CHANGE 4
 
+void updateLeftEncoder();
 
-MotorControl FR = MotorControl(FR_PIN_1, FR_PIN_1);
+void updateRightEncoder();
+
+void updateCenterEncoder();
+
+MotorControl FR = MotorControl(FR_PIN_1, FR_PIN_2);
 MotorControl FL = MotorControl(FL_PIN_1, FL_PIN_2);
 MotorControl BR = MotorControl(BR_PIN_1, BR_PIN_2);
 MotorControl BL = MotorControl(BL_PIN_1, BL_PIN_2);
@@ -106,10 +111,10 @@ void loop() {
         run = doc["run"];
 
         if (run) {
-          float fl_speed = doc["motor_speeds"][0];
-          float fr_speed = doc["motor_speeds"][1];
-          float bl_speed = doc["motor_speeds"][2];
-          float br_speed = doc["motor_speeds"][3];
+          float fr_speed = doc["motor_speeds"][0];
+          float fl_speed = doc["motor_speeds"][1];
+          float br_speed = doc["motor_speeds"][2];
+          float bl_speed = doc["motor_speeds"][3];
           FL.Motor_setGoalSpeed(fl_speed);
           FR.Motor_setGoalSpeed(fr_speed);
           BL.Motor_setGoalSpeed(bl_speed);
