@@ -38,7 +38,7 @@ const int ledPin = 13;
 #define EC_PIN_2 Encoder_3_PIN_2
 
 
-MotorControl FR = MotorControl(FR_PIN_1, FR_PIN_1);
+MotorControl FR = MotorControl(FR_PIN_1, FR_PIN_2);
 MotorControl FL = MotorControl(FL_PIN_1, FL_PIN_2);
 MotorControl BR = MotorControl(BR_PIN_1, BR_PIN_2);
 MotorControl BL = MotorControl(BL_PIN_1, BL_PIN_2);
@@ -71,7 +71,7 @@ void updateCenterEncoder() {
 }
 
 void setup() {
-  Serial8.begin(115200);
+  Serial4.begin(115200);
 
   FR.Motor_enablePIDMode(false);
   FL.Motor_enablePIDMode(false);
@@ -98,15 +98,15 @@ void setup() {
 
 void loop() {
 
-  if (Serial8.available())
+  if (Serial4.available())
   {
     digitalWrite(ledPin, arduino::HIGH);
 
-    deserializeJson(doc, Serial8);
+    deserializeJson(doc, Serial4);
 
     int msg_type = doc["header"]["message_type"];
 
-    Serial8.flush();
+    Serial4.flush();
 
     switch (msg_type)
     {
@@ -117,7 +117,7 @@ void loop() {
         doc["deadwheel_stats"]["encoder_right"] = (odom.Encoder2)->getPosition();
         doc["deadwheel_stats"]["encoder_center"] = (odom.Encoder3)->getPosition();
         doc["deadwheel_stats"]["heading"] = 1.0;
-        serializeJson(doc, Serial8);
+        serializeJson(doc, Serial4);
         break;
       case 1:
         run = doc["run"];
