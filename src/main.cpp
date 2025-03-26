@@ -15,21 +15,21 @@ const char *test =
 const int ledPin = 13;
 
 // Drivetrain Macros
-#define FL_PIN_1 MD3_M2_PIN_2
-#define FL_PIN_2 MD3_M2_PIN_1
+#define FR_PIN_1 MD3_M2_PIN_2
+#define FR_PIN_2 MD3_M2_PIN_1
 
-#define BL_PIN_1 MD4_M2_PIN_1
-#define BL_PIN_2 MD4_M2_PIN_2
+#define BR_PIN_1 MD4_M2_PIN_1
+#define BR_PIN_2 MD4_M2_PIN_2
 
-#define BR_PIN_1 MD4_M1_PIN_2
-#define BR_PIN_2 MD4_M1_PIN_1
+#define BL_PIN_1 MD4_M1_PIN_2
+#define BL_PIN_2 MD4_M1_PIN_1
 
-#define FR_PIN_1 MD3_M1_PIN_1
-#define FR_PIN_2 MD3_M1_PIN_2
+#define FL_PIN_1 MD3_M1_PIN_1
+#define FL_PIN_2 MD3_M1_PIN_2
 
 // Encoder Macros
-#define EL_PIN_1 Encoder_2_PIN_1
-#define EL_PIN_2 Encoder_2_PIN_2
+#define EL_PIN_1 Encoder_2_PIN_2
+#define EL_PIN_2 Encoder_2_PIN_1
 
 #define ER_PIN_1 Encoder_1_PIN_1
 #define ER_PIN_2 Encoder_1_PIN_2
@@ -71,7 +71,7 @@ void updateCenterEncoder() {
 }
 
 void setup() {
-  Serial4.begin(115200);
+  Serial8.begin(115200);
 
   FR.Motor_enablePIDMode(false);
   FL.Motor_enablePIDMode(false);
@@ -98,15 +98,13 @@ void setup() {
 
 void loop() {
 
-  if (Serial4.available())
+  if (Serial8.available())
   {
     digitalWrite(ledPin, arduino::HIGH);
 
-    deserializeJson(doc, Serial4);
+    deserializeJson(doc, Serial8);
 
     int msg_type = doc["header"]["message_type"];
-
-    Serial4.flush();
 
     switch (msg_type)
     {
@@ -117,7 +115,8 @@ void loop() {
         doc["deadwheel_stats"]["encoder_right"] = (odom.Encoder2)->getPosition();
         doc["deadwheel_stats"]["encoder_center"] = (odom.Encoder3)->getPosition();
         doc["deadwheel_stats"]["heading"] = 1.0;
-        serializeJson(doc, Serial4);
+        serializeJson(doc, Serial8);
+        Serial8.print("\n");
         break;
       case 1:
         run = doc["run"];
