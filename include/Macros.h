@@ -10,11 +10,11 @@
 #define MD1_M2_PIN_1 2
 #define MD1_M2_PIN_2 3
 
-#define MD2_M1_PIN_1 19
-#define MD2_M1_PIN_2 18
+#define MD2_M1_PIN_1 23
+#define MD2_M1_PIN_2 22
 
-#define MD2_M2_PIN_1 23
-#define MD2_M2_PIN_2 22
+#define MD2_M2_PIN_1 19
+#define MD2_M2_PIN_2 18
 
 #define MD3_M1_PIN_1 28
 #define MD3_M1_PIN_2 29
@@ -46,9 +46,12 @@
 #define Encoder_3_PIN_2 9
 
 // Servos
-#define Servo_1 10
-#define Servo_2 11
-#define Servo_3 12
-#define Servo_4 33
+#define PWM_1 10
+#define PWM_2 11
+#define PWM_3 12
+#define PWM_4 33
+
+#define Photoresistor_PIN A7
+#define LED_threashold 1000
 
 #endif
