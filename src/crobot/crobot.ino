@@ -20,8 +20,8 @@
 #define WINCH_PIN_1    MD2_M2_PIN_1
 #define WINCH_PIN_2    MD2_M2_PIN_2
 
-#define ENCODER_FRONT_LEFT_A 33
-#define ENCODER_FRONT_LEFT_B 13
+#define ENCODER_FRONT_LEFT_A 11
+#define ENCODER_FRONT_LEFT_B 12
 
 #define ENCODER_FRONT_RIGHT_A 25
 #define ENCODER_FRONT_RIGHT_B 24
@@ -29,8 +29,8 @@
 // #define ENCODER_BACK_RIGHT_A 33
 // #define ENCODER_BACK_RIGHT_B 13
 
-volatile int32_t encoder_fl_ticks = 0;
-volatile int32_t encoder_fr_ticks = 0;
+volatile long encoder_fl_ticks = 0;
+volatile long encoder_fr_ticks = 0;
 // volatile int32_t encoder_br_ticks = 0;
 
 MotorControl FrontLeftMotor  = MotorControl(MOTOR_FL_PIN_1, MOTOR_FL_PIN_2);
@@ -203,17 +203,17 @@ void loop() {
       Sweeper.write(sweeper_angle);
       Winch.Motor_start(winch_speed);
 
-      noInterrupts();
-      int32_t fl = encoder_fl_ticks;
-      int32_t fr = encoder_fr_ticks;
-      // int32_t br = encoder_br_ticks;
-      interrupts(); 
+      // noInterrupts();
+      // int32_t fl = encoder_fl_ticks;
+      // int32_t fr = encoder_fr_ticks;
+      // // int32_t br = encoder_br_ticks;
+      // interrupts(); 
 
       StaticJsonDocument<256> out;
       out["cmd"] = "response";
       JsonObject enc = out.createNestedObject("encoders");
-      enc["front_left"] = fl;
-      enc["front_right"] = fr;
+      enc["front_left"] = encoder_fl_ticks;
+      enc["front_right"] = encoder_fr_ticks;
       // enc["back_right"] = br;
 
       serializeJson(out, Serial4);
