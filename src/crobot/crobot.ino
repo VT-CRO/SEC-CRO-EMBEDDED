@@ -2,7 +2,6 @@
 #include "Macros.h"
 #include <Servo.h>
 #include "MotorControl.h"
-#include <Wire.h>
 
 #define BAUD_RATE 115200
 
@@ -61,38 +60,6 @@ Servo BackRightServo;
 
 Servo Sweeper;
 Servo FlagDropper;
-
-float RateRoll, RatePitch, RateYaw;
-float RateCalibrationRoll, RateCalibrationPitch, RateCalibrationYaw;
-
-int RateCalibrationNumber;
-
-void gyro_signals(void) {
-
-  Wire2.beginTransmission(0x68);
-  Wire2.write(0x1A);
-  Wire2.write(0x05);
-  Wire2.endTransmission();
-
-  Wire2.beginTransmission(0x68);
-  Wire2.write(0x1B);
-  Wire2.write(0x08);
-  Wire2.endTransmission();
-
-  Wire2.beginTransmission(0x68);
-  Wire2.write(0x43);
-  Wire2.endTransmission();
-
-  Wire2.requestFrom(0x68, 6);
-
-  int16_t GyroX = Wire2.read() << 8 | Wire2.read();
-  int16_t GyroY = Wire2.read() << 8 | Wire2.read();
-  int16_t GyroZ = Wire2.read() << 8 | Wire2.read();
-
-  RateRoll  = (float)GyroX / 65.5;
-  RatePitch = (float)GyroY / 65.5;
-  RateYaw   = (float)GyroZ / 65.5;
-}
 
 void resetServos(){
   FrontLeftServo. write(SERVO_FL_HOME);
@@ -159,29 +126,7 @@ void setup() {
   Sweeper.attach(SWEEPER_PIN);
   FlagDropper.attach(FLAG_PIN);
 
-  Wire2.begin();              // Start I2C2
-  Wire2.setClock(400000);     // 400 kHz I2C speed
-
-  Wire2.beginTransmission(0x68);
-  Wire2.write(0x6B);
-  Wire2.write(0x00);
-  Wire2.endTransmission();
-
-  for (RateCalibrationNumber = 0; RateCalibrationNumber < 2000; RateCalibrationNumber++) {
-    gyro_signals();
-
-    RateCalibrationRoll  += RateRoll;
-    RateCalibrationPitch += RatePitch;
-    RateCalibrationYaw   += RateYaw;
-
-    delay(1);
-  }
-
-  RateCalibrationRoll  /= 2000;
-  RateCalibrationPitch /= 2000;
-  RateCalibrationYaw   /= 2000;
-
-  delay(2000);
+  delay(4000);
   // pinMode(LED_BUILTIN, OUTPUT);
   // for(int i = 0; i < 10; i++){
   //   digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
@@ -265,20 +210,12 @@ void loop() {
       // // int32_t br = encoder_br_ticks;
       // interrupts(); 
 
-      gyro_signals();
-
-      RateRoll  -= RateCalibrationRoll;
-      RatePitch -= RateCalibrationPitch;
-      RateYaw   -= RateCalibrationYaw;
-
       StaticJsonDocument<256> out;
       out["cmd"] = "response";
       JsonObject enc = out.createNestedObject("encoders");
       enc["front_left"] = encoder_fl_ticks;
       enc["front_right"] = encoder_fr_ticks;
       // enc["back_right"] = br;
-
-      out["yaw"] = RateYaw;
 
       serializeJson(out, Serial4);
       Serial4.print('\n');
