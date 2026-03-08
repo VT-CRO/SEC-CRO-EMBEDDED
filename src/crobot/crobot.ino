@@ -2,6 +2,9 @@
 #include "Macros.h"
 #include <Servo.h>
 #include "MotorControl.h"
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
 
 #define BAUD_RATE 115200
 
@@ -60,6 +63,8 @@ Servo BackRightServo;
 
 Servo Sweeper;
 Servo FlagDropper;
+
+Adafruit_MPU6050 mpu;
 
 void resetServos(){
   FrontLeftServo. write(SERVO_FL_HOME);
@@ -125,6 +130,19 @@ void setup() {
 
   Sweeper.attach(SWEEPER_PIN);
   FlagDropper.attach(FLAG_PIN);
+
+  Wire2.begin();              // start I2C bus 2
+  Wire2.setClock(400000);     // optional: fast I2C
+
+  // initialize MPU6050 using Wire2
+  if (!mpu.begin(0x68, &Wire2)) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) delay(10);
+  }
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_5_HZ);
 
   delay(4000);
   // pinMode(LED_BUILTIN, OUTPUT);
@@ -210,12 +228,16 @@ void loop() {
       // // int32_t br = encoder_br_ticks;
       // interrupts(); 
 
+      sensors_event_t g;
+
       StaticJsonDocument<256> out;
       out["cmd"] = "response";
       JsonObject enc = out.createNestedObject("encoders");
       enc["front_left"] = encoder_fl_ticks;
       enc["front_right"] = encoder_fr_ticks;
       // enc["back_right"] = br;
+
+      out["yaw"] = g.gyro.z;
 
       serializeJson(out, Serial4);
       Serial4.print('\n');
