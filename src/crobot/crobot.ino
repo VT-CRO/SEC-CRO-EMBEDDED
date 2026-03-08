@@ -228,7 +228,8 @@ void loop() {
       // // int32_t br = encoder_br_ticks;
       // interrupts(); 
 
-      sensors_event_t g;
+      sensors_event_t a, g, temp;
+      mpu.getEvent(&a, &g, &temp);
 
       StaticJsonDocument<256> out;
       out["cmd"] = "response";
