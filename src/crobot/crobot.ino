@@ -26,8 +26,8 @@
 #define ENCODER_FRONT_LEFT_A 33
 #define ENCODER_FRONT_LEFT_B 13
 
-#define ENCODER_FRONT_RIGHT_A 11
-#define ENCODER_FRONT_RIGHT_B 12
+#define ENCODER_FRONT_RIGHT_A 12
+#define ENCODER_FRONT_RIGHT_B 11
 
 // #define ENCODER_BACK_RIGHT_A 33
 // #define ENCODER_BACK_RIGHT_B 13
@@ -52,6 +52,7 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 #define SERVO_FR_HOME 53
 #define SERVO_BL_HOME 57
 #define SERVO_BR_HOME 110
+#define SWEEPER_HOME  150
 
 #define SWEEPER_PIN PWM_6
 #define FLAG_PIN PWM_5
@@ -71,6 +72,7 @@ void resetServos(){
   FrontRightServo.write(SERVO_FR_HOME);
   BackLeftServo.  write(SERVO_BL_HOME);
   BackRightServo. write(SERVO_BR_HOME);
+  Sweeper.        write(SWEEPER_HOME);
 }
 
 
@@ -207,7 +209,7 @@ void loop() {
       fr_angle =      constrain(fr_angle,       20, 160);
       bl_angle =      constrain(bl_angle,       30, 180);
       br_angle =      constrain(br_angle,       0,  150);
-      sweeper_angle = constrain(sweeper_angle,  65, 150);
+      sweeper_angle = constrain(sweeper_angle,  60, 150);
 
       FrontLeftServo. write(fl_angle);
       FrontRightServo.write(fr_angle);
