@@ -258,7 +258,7 @@ void loop() {
 
       out["yaw"] = g.gyro.z;
 
-      out["photo_resistor"] = analogRead(Photoresistor_PIN);
+      out["photoresistor"] = analogRead(Photoresistor_PIN);
 
       serializeJson(out, Serial4);
       Serial4.print('\n');
