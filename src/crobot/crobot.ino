@@ -1,3 +1,5 @@
+// #include "D:\24_design_team\001_SEC_2025\005_final_embedded_code\crobot\ArduinoJson\src\ArduinoJson.h"
+// #include "D:\24_design_team\001_SEC_2025\005_final_embedded_code\crobot\ArduinoJson\ArduinoJson.h"
 #include <ArduinoJson.h>
 #include "Macros.h"
 #include <Servo.h>
@@ -65,6 +67,8 @@ Servo BackRightServo;
 Servo Sweeper;
 Servo FlagDropper;
 
+// bool Start = false;
+
 Adafruit_MPU6050 mpu;
 
 void resetServos(){
@@ -98,6 +102,18 @@ void isr_encoder_fr_a() {
   }
 }
 
+// void WaitforPhotoresistor(){
+//   if (Start){
+//     return;
+//   }
+//   int Ph_value = analogRead(Photoresistor_PIN);
+//   Serial.println(Ph_value);
+//   if(Ph_value < LED_threashold ){
+//     // Serial.println(Ph_value);
+//     Start = true;
+//     Serial.println("start the bot");
+//   }
+// }
 // void isr_encoder_br_a() {
 //   bool a = digitalReadFast(ENCODER_BACK_RIGHT_A);
 //   bool b = digitalReadFast(ENCODER_BACK_RIGHT_B);
@@ -241,6 +257,8 @@ void loop() {
       // enc["back_right"] = br;
 
       out["yaw"] = g.gyro.z;
+
+      out["photo_resistor"] = analogRead(Photoresistor_PIN);
 
       serializeJson(out, Serial4);
       Serial4.print('\n');
