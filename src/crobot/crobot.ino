@@ -57,6 +57,20 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 #define SWEEPER_PIN PWM_6
 #define FLAG_PIN PWM_5
 
+// TODO: DEFINE PINS FOR ARM
+#define SHOULDER_PIN  PWM_10
+#define ELBOW_PIN     PWM_11
+#define GRIPPER_PIN   PWM_4
+
+// TODO: DEFINE POSITIONS FOR ARM
+#define SHOULDER_UP       0
+#define SHOULDER_DOWN     150
+#define ELBOW_UP          180
+#define ELBOW_DOWN        90
+#define GRIPPER_OPEN      40 // Didn't actually test this value, you'll figure it out!!
+#define GRIPPER_CLOSED    0
+
+
 Servo FrontLeftServo;
 Servo FrontRightServo;
 Servo BackLeftServo;
@@ -64,6 +78,10 @@ Servo BackRightServo;
 
 Servo Sweeper;
 Servo FlagDropper;
+
+Servo Shoulder;
+Servo Elbow;
+Servo Gripper;
 
 // bool Start = false;
 
@@ -92,6 +110,9 @@ void resetServos(){
   BackLeftServo.  write(SERVO_BL_HOME);
   BackRightServo. write(SERVO_BR_HOME);
   Sweeper.        write(SWEEPER_HOME);
+  Shoulder.       write(SHOULDER_UP);
+  Elbow.          write(ELBOW_UP);
+  Gripper.        write(GRIPPER_CLOSED);
 }
 
 // interrupts that trigger on channel A and 
@@ -162,6 +183,10 @@ void setup() {
 
   Sweeper.attach(SWEEPER_PIN);
   FlagDropper.attach(FLAG_PIN);
+
+  Shoulder.attach(SHOULDER_PIN);
+  Elbow.attach(ELBOW_PIN);
+  Gripper.attach(GRIPPER_PIN);
 
   Wire2.begin();              // start I2C bus 2
   Wire2.setClock(400000);     // optional: fast I2C
@@ -237,11 +262,23 @@ void loop() {
       int sweeper_angle = doc["sweeper"];
       int winch_speed = doc["winch"];
 
+      int flag_angle = doc["flag"];
+
+      int shoulder_angle = doc["shoulder"];
+      int elbow_angle = doc["elbow"];
+      int gripper_angle = doc["gripper"];
+
       fl_angle =      constrain(fl_angle,       10, 160);
       fr_angle =      constrain(fr_angle,       20, 160);
       bl_angle =      constrain(bl_angle,       30, 180);
       br_angle =      constrain(br_angle,       0,  150);
-      sweeper_angle = constrain(sweeper_angle,  60, 150);
+      sweeper_angle = constrain(sweeper_angle,  60, 165);
+
+      //TODO: Add contraints to all new servos after testing
+      flag_angle =      constrain(flag_angle,     80, 150); // Open at 150, closed at 80
+      shoulder_angle =  constrain(shoulder_angle, 0, 150); // Optimal for use is 150
+      elbow_angle =     constrain(elbow_angle,    80, 180); // Optimal for use is 90
+      gripper_angle =   constrain(gripper_angle,  0, 120); // Remember tbe 1.5 multiplier for angle
 
       FrontLeftServo. write(fl_angle);
       FrontRightServo.write(fr_angle);
@@ -255,6 +292,12 @@ void loop() {
 
       Sweeper.write(sweeper_angle);
       Winch.Motor_start(winch_speed);
+
+      // Set the assignment for all
+      FlagDropper.write(flag_angle);
+      Shoulder.write(shoulder_angle);
+      Elbow.write(elbow_angle);
+      Gripper.write(gripper_angle);
 
       // noInterrupts();
       // int32_t fl = encoder_fl_ticks;
