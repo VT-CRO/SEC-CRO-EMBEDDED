@@ -70,6 +70,10 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 #define GRIPPER_OPEN      40 // Didn't actually test this value, you'll figure it out!!
 #define GRIPPER_CLOSED    0
 
+#define WAIT_TIME 2000
+#define ORBIT_TIME 15000
+#define CRATER_ORBIT_VELOCITY 80
+
 
 Servo FrontLeftServo;
 Servo FrontRightServo;
@@ -328,7 +332,6 @@ void loop() {
       enum State {
         JETSON,
         CRATER_ENTER_DELAY,
-        CRATER_ENTER,
         CRATER_ALIGN_DELAY,
         CRATER_ALIGN_ANKLES,
         CRATER_ORBIT_DELAY,
@@ -349,22 +352,40 @@ void loop() {
         currentState = CRATER_ENTER_DELAY;
       }
       else if (currentState == CRATER_ENTER_DELAY) {
-        if (stateTime)
+        if (stateTime >= WAIT_TIME) {
+          currentState = CRATER_ALIGN_ANKLES;
+          stateTime = 0;
+        }
       }
-      else if (currentState == CRATER_ENTER) {
-        
-      } 
-      else if (currentState == CRATER_ALIGN_DELAY) {
-
-      }
+      
       else if (currentState == CRATER_ALIGN_ANKLES) {
-        
+        // set to 90 degrees
+        FrontLeftServo.write(SERVO_FL_HOME - 100);
+        FrontRightServo.write(SERVO_FR_HOME + 100);
+        BackLeftServo.write(SERVO_BL_HOME + 100);
+        BackRightServo.write(SERVO_BR_HOME - 100);
+        currentState = CRATER_ALIGN_DELAY;
       }
-      else if (currentState == CRATER_ORBIT_DELAY) {
+      else if (currentState == CRATER_ALIGN_DELAY) {
+        if (stateTime >= WAIT_TIME) {
+          currentState = CRATER_ORBIT;
+          stateTime = 0;
+        }
 
       }
       else if (currentState == CRATER_ORBIT) {
-
+        FrontLeftMotor.Motor_start(CRATER_ORBIT_VELOCITY);
+        FrontRightMotor.Motor_start(-CRATER_ORBIT_VELOCITY);
+        BackLeftMotor.Motor_start(-CRATER_ORBIT_VELOCITY);
+        BackRightMotor.Motor_start(CRATER_ORBIT_VELOCITY);
+        currentState = CRATER_ORBIT_DELAY;
+      }
+      else if (currentState == CRATER_ORBIT_DELAY) {
+        if (stateTime >= CRATER_ORBIT_TIME) {
+          currentState = CRATER_WAIT_AFTER;
+          stateTime = 0;
+        }
+      }
       }
 
       sensors_event_t a, g, temp;
