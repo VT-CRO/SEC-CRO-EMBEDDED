@@ -1,5 +1,3 @@
-// #include "D:\24_design_team\001_SEC_2025\005_final_embedded_code\crobot\ArduinoJson\src\ArduinoJson.h"
-// #include "D:\24_design_team\001_SEC_2025\005_final_embedded_code\crobot\ArduinoJson\ArduinoJson.h"
 #include <ArduinoJson.h>
 #include "Macros.h"
 #include <Servo.h>
@@ -71,6 +69,23 @@ Servo FlagDropper;
 
 Adafruit_MPU6050 mpu;
 
+enum State {
+  JETSON,
+  CRATER_ENTER_DELAY,
+  CRATER_ENTER,
+  CRATER_ENTERING,
+  CRATER_ALIGN_DELAY,
+  CRATER_ALIGN_ANKLES,
+  CRATER_ALIGNING,
+  CRATER_ORBIT_DELAY,
+  CRATER_ORBIT,
+  CRATER_WAIT_AFTER
+} currentState;
+
+elapsedMillis stateTime;
+const unsigned int CRATER_ENTER_DELAY_MS = 2000; 
+const unsigned int CRATER
+
 void resetServos(){
   FrontLeftServo. write(SERVO_FL_HOME);
   FrontRightServo.write(SERVO_FR_HOME);
@@ -78,7 +93,6 @@ void resetServos(){
   BackRightServo. write(SERVO_BR_HOME);
   Sweeper.        write(SWEEPER_HOME);
 }
-
 
 // interrupts that trigger on channel A and 
 // use channel B to determine direction
@@ -208,6 +222,8 @@ void loop() {
       // Serial4.write("recieved read command");
     }
     else if (cmd == "write") {
+      currentState = JETSON;
+
       int fl_angle = doc["ankles"]["front_left"];
       int fr_angle = doc["ankles"]["front_right"];
       int bl_angle = doc["ankles"]["back_left"];
@@ -246,6 +262,8 @@ void loop() {
       // // int32_t br = encoder_br_ticks;
       // interrupts(); 
 
+      // OUTPUT --------------------------------------------
+
       sensors_event_t a, g, temp;
       mpu.getEvent(&a, &g, &temp);
 
@@ -259,7 +277,66 @@ void loop() {
       out["yaw"] = g.gyro.z;
 
       out["photoresistor"] = analogRead(Photoresistor_PIN);
+      serializeJson(out, Serial4);
+      Serial4.print('\n');
+    }
+    else if (cmd == "craterRun") {
+      /*
+      enum State {
+        JETSON,
+        CRATER_ENTER_DELAY,
+        CRATER_ENTER,
+        CRATER_ALIGN_DELAY,
+        CRATER_ALIGN_ANKLES,
+        CRATER_ORBIT_DELAY,
+        CRATER_ORBIT,
+        CRATER_WAIT_AFTER
+      } currentState;
+      */
+      if (currentState == JETSON) {
+        stateTime = elapsedMillis();
 
+        FrontLeftMotor.Motor_start(0);
+        FrontRightMotor.Motor_start(0);
+        BackLeftMotor.Motor_start(0);
+        BackRightMotor.Motor_start(0);
+        Winch.Motor_start(0);
+        resetServos();
+
+        currentState = CRATER_ENTER_DELAY;
+      }
+      else if (currentState == CRATER_ENTER_DELAY) {
+        if (stateTime)
+      }
+      else if (currentState == CRATER_ENTER) {
+        
+      } 
+      else if (currentState == CRATER_ALIGN_DELAY) {
+
+      }
+      else if (currentState == CRATER_ALIGN_ANKLES) {
+        
+      }
+      else if (currentState == CRATER_ORBIT_DELAY) {
+
+      }
+      else if (currentState == CRATER_ORBIT) {
+
+      }
+
+      sensors_event_t a, g, temp;
+      mpu.getEvent(&a, &g, &temp);
+
+      StaticJsonDocument<256> out;
+      out["cmd"] = "response";
+      JsonObject enc = out.createNestedObject("encoders");
+      enc["front_left"] = encoder_fl_ticks;
+      enc["front_right"] = encoder_fr_ticks;
+      // enc["back_right"] = br;
+
+      out["yaw"] = g.gyro.z;
+
+      out["photoresistor"] = analogRead(Photoresistor_PIN);
       serializeJson(out, Serial4);
       Serial4.print('\n');
     }
