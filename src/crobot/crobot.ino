@@ -71,8 +71,8 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 #define GRIPPER_CLOSED    0
 
 #define WAIT_TIME 2000
-#define ORBIT_TIME 15000
-#define CRATER_ORBIT_VELOCITY 80
+#define CRATER_ORBIT_TIME 15000
+#define CRATER_ORBIT_VELOCITY 140
 
 
 Servo FrontLeftServo;
@@ -97,7 +97,10 @@ enum State {
   CRATER_ENTER,
   CRATER_ENTERING,
   CRATER_ALIGN_DELAY,
-  CRATER_ALIGN_ANKLES,
+  CRATER_ALIGN_ANKLE_1,
+  CRATER_ALIGN_ANKLE_2,
+  CRATER_ALIGN_ANKLE_3,
+  CRATER_ALIGN_ANKLE_4,
   CRATER_ALIGNING,
   CRATER_ORBIT_DELAY,
   CRATER_ORBIT,
@@ -106,7 +109,7 @@ enum State {
 
 elapsedMillis stateTime;
 const unsigned int CRATER_ENTER_DELAY_MS = 2000; 
-const unsigned int CRATER
+const unsigned int CRATER;
 
 void resetServos(){
   FrontLeftServo. write(SERVO_FL_HOME);
@@ -114,9 +117,9 @@ void resetServos(){
   BackLeftServo.  write(SERVO_BL_HOME);
   BackRightServo. write(SERVO_BR_HOME);
   Sweeper.        write(SWEEPER_HOME);
-  Shoulder.       write(SHOULDER_UP);
-  Elbow.          write(ELBOW_UP);
-  Gripper.        write(GRIPPER_CLOSED);
+  // Shoulder.       write(SHOULDER_DOWN);
+  // Elbow.          write(ELBOW_DOWN);
+  // Gripper.        write(GRIPPER_CLOSED);
 }
 
 // interrupts that trigger on channel A and 
@@ -188,9 +191,9 @@ void setup() {
   Sweeper.attach(SWEEPER_PIN);
   FlagDropper.attach(FLAG_PIN);
 
-  Shoulder.attach(SHOULDER_PIN);
-  Elbow.attach(ELBOW_PIN);
-  Gripper.attach(GRIPPER_PIN);
+  // Shoulder.attach(SHOULDER_PIN);
+  // Elbow.attach(ELBOW_PIN);
+  // Gripper.attach(GRIPPER_PIN);
 
   Wire2.begin();              // start I2C bus 2
   Wire2.setClock(400000);     // optional: fast I2C
@@ -252,7 +255,7 @@ void loop() {
     }
     else if (cmd == "write") {
       currentState = JETSON;
-
+      
       int fl_angle = doc["ankles"]["front_left"];
       int fr_angle = doc["ankles"]["front_right"];
       int bl_angle = doc["ankles"]["back_left"];
@@ -327,6 +330,7 @@ void loop() {
       serializeJson(out, Serial4);
       Serial4.print('\n');
     }
+    
     else if (cmd == "craterRun") {
       /*
       enum State {
@@ -353,23 +357,51 @@ void loop() {
       }
       else if (currentState == CRATER_ENTER_DELAY) {
         if (stateTime >= WAIT_TIME) {
-          currentState = CRATER_ALIGN_ANKLES;
+          currentState = CRATER_ALIGN_ANKLE_1;
           stateTime = 0;
         }
       }
       
-      else if (currentState == CRATER_ALIGN_ANKLES) {
-        // set to 90 degrees
-        FrontLeftServo.write(SERVO_FL_HOME - 100);
-        FrontRightServo.write(SERVO_FR_HOME + 100);
-        BackLeftServo.write(SERVO_BL_HOME + 100);
-        BackRightServo.write(SERVO_BR_HOME - 100);
-        currentState = CRATER_ALIGN_DELAY;
+      // 90 degrees
+      else if (currentState == CRATER_ALIGN_ANKLE_1) {
+        if (stateTime >= WAIT_TIME) {
+          FrontLeftServo.write(SERVO_FL_HOME - 92 / 0.9);
+          stateTime = 0;
+          currentState = CRATER_ALIGN_ANKLE_2;
+        }
       }
+
+      // 90 degrees
+      else if (currentState == CRATER_ALIGN_ANKLE_2) {
+        if (stateTime >= WAIT_TIME) {
+          FrontRightServo.write(SERVO_FR_HOME -92 / 0.9);
+          stateTime = 0;
+          currentState = CRATER_ALIGN_ANKLE_3;
+        }
+      }
+
+      // 67.5 degrees
+      else if (currentState == CRATER_ALIGN_ANKLE_3) {
+        if (stateTime >= WAIT_TIME) {
+          BackLeftServo.write(SERVO_BL_HOME + 67.5 / 0.9);
+          stateTime = 0;
+          currentState = CRATER_ALIGN_ANKLE_4;
+        }
+      }
+
+      // 67.5 degrees
+      else if (currentState == CRATER_ALIGN_ANKLE_4) {
+        if (stateTime >= WAIT_TIME) {
+          BackRightServo.write(SERVO_BR_HOME - 67.5 / 0.9);
+          stateTime = 0;
+          currentState = CRATER_ALIGN_DELAY;
+        }
+      }
+
       else if (currentState == CRATER_ALIGN_DELAY) {
         if (stateTime >= WAIT_TIME) {
-          currentState = CRATER_ORBIT;
           stateTime = 0;
+          currentState = CRATER_ORBIT;
         }
 
       }
@@ -386,7 +418,13 @@ void loop() {
           stateTime = 0;
         }
       }
+      else if (currentState == CRATER_WAIT_AFTER) {
+        FrontLeftMotor.Motor_start(0);
+        FrontRightMotor.Motor_start(0);
+        BackLeftMotor.Motor_start(0);
+        BackRightMotor.Motor_start(0);
       }
+      
 
       sensors_event_t a, g, temp;
       mpu.getEvent(&a, &g, &temp);
