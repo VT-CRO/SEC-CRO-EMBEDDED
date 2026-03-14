@@ -60,7 +60,8 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 // TODO: DEFINE PINS FOR ARM
 #define SHOULDER_PIN  PWM_10
 #define ELBOW_PIN     PWM_11
-#define GRIPPER_PIN   PWM_4
+// #define GRIPPER_PIN   PWM_4
+#define CATAPULT_PIN PWM_4
 
 // TODO: DEFINE POSITIONS FOR ARM
 #define SHOULDER_UP       0
@@ -86,6 +87,7 @@ Servo FlagDropper;
 Servo Shoulder;
 Servo Elbow;
 Servo Gripper;
+Servo Catapult;
 
 // bool Start = false;
 
@@ -190,6 +192,7 @@ void setup() {
 
   Sweeper.attach(SWEEPER_PIN);
   FlagDropper.attach(FLAG_PIN);
+  Catapult.attach(CATAPULT_PIN);
 
   // Shoulder.attach(SHOULDER_PIN);
   // Elbow.attach(ELBOW_PIN);
@@ -327,8 +330,15 @@ void loop() {
       out["yaw"] = g.gyro.z;
 
       out["photoresistor"] = analogRead(Photoresistor_PIN);
+      Serial.print(analogRead(Photoresistor_PIN));
       serializeJson(out, Serial4);
       Serial4.print('\n');
+    }
+
+    else if (cmd == "launchDrone") {
+      // launch drone
+      stateTime = elapsedMillis();
+      Catapult.write(150);
     }
     
     else if (cmd == "craterRun") {
