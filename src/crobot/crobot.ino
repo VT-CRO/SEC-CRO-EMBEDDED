@@ -60,7 +60,7 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 // TODO: DEFINE PINS FOR ARM
 #define SHOULDER_PIN  PWM_10
 #define ELBOW_PIN     PWM_11
-// #define GRIPPER_PIN   PWM_4
+// #define GRIPPER_PIN   PWM_4 (erm, what pin is this now???)
 #define CATAPULT_PIN PWM_4
 
 // TODO: DEFINE POSITIONS FOR ARM
@@ -339,6 +339,18 @@ void loop() {
       // launch drone
       stateTime = elapsedMillis();
       Catapult.write(150);
+    }
+
+    else if (cmd == "closeArm") {
+      Shoulder.write(SHOULDER_DOWN);
+      Elbow.write(ELBOW_DOWN);
+      Gripper.write(GRIPPER_CLOSED);
+    }
+
+    else if (cmd == "openArm") {
+      Shoulder.write(SHOULDER_UP);
+      Elbow.write(ELBOW_UP);
+      Gripper.write(GRIPPER_OPEN);
     }
     
     else if (cmd == "craterRun") {
