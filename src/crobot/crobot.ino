@@ -194,8 +194,8 @@ void setup() {
   FlagDropper.attach(FLAG_PIN);
   Catapult.attach(CATAPULT_PIN);
 
-  // Shoulder.attach(SHOULDER_PIN);
-  // Elbow.attach(ELBOW_PIN);
+  Shoulder.attach(SHOULDER_PIN);
+  Elbow.attach(ELBOW_PIN);
   // Gripper.attach(GRIPPER_PIN);
 
   Wire2.begin();              // start I2C bus 2
