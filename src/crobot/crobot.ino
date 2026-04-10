@@ -64,14 +64,15 @@ MotorControl Winch = MotorControl(WINCH_PIN_1, WINCH_PIN_2);
 #define CATAPULT_PIN PWM_4
 
 // TODO: DEFINE POSITIONS FOR ARM
-#define SHOULDER_UP       0
-#define SHOULDER_DOWN     150
-#define ELBOW_UP          180
-#define ELBOW_DOWN        90
-#define GRIPPER_OPEN      40 // Didn't actually test this value, you'll figure it out!!
-#define GRIPPER_CLOSED    0
+#define SHOULDER_OPEN 150
+#define SHOULDER_CLOSE 0
+#define ELBOW_OPEN 90
+#define ELBOW_CLOSE 180
+#define GRIPPER_OPEN 40 // needs testing
+#define GRIPPER_CLOSE 0
 
 #define WAIT_TIME 2000
+#define WAIT_TIME_15 1500
 #define CRATER_ORBIT_TIME 15000
 #define CRATER_ORBIT_VELOCITY 140
 
@@ -106,8 +107,11 @@ enum State {
   CRATER_ALIGNING,
   CRATER_ORBIT_DELAY,
   CRATER_ORBIT,
-  CRATER_WAIT_AFTER
+  CRATER_WAIT_AFTER,
 } currentState;
+
+// bool urMom;
+bool isClosed;
 
 elapsedMillis stateTime;
 const unsigned int CRATER_ENTER_DELAY_MS = 2000; 
@@ -184,6 +188,7 @@ void setup() {
   // pinMode(ENCODER_BACK_RIGHT_A, INPUT_PULLUP);
   // pinMode(ENCODER_BACK_RIGHT_B, INPUT_PULLUP);
 
+
   attachInterrupt(digitalPinToInterrupt(ENCODER_FRONT_LEFT_A), isr_encoder_fl_a, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_FRONT_RIGHT_A), isr_encoder_fr_a, CHANGE);
   // attachInterrupt(digitalPinToInterrupt(ENCODER_FRONT_LEFT_B), isr_encoder_fl_a, CHANGE);
@@ -197,6 +202,10 @@ void setup() {
   Shoulder.attach(SHOULDER_PIN);
   Elbow.attach(ELBOW_PIN);
   // Gripper.attach(GRIPPER_PIN);
+
+  Shoulder.write(0);
+  Elbow.write(0);
+  // Gripper.write(0);
 
   Wire2.begin();              // start I2C bus 2
   Wire2.setClock(400000);     // optional: fast I2C
@@ -222,6 +231,7 @@ void setup() {
 
   resetServos();
   delay(2000);
+  isClosed = true;
 }
 
 void loop() {
@@ -286,6 +296,7 @@ void loop() {
 
       //TODO: Add contraints to all new servos after testing
       flag_angle =      constrain(flag_angle,     80, 150); // Open at 150, closed at 80
+
       shoulder_angle =  constrain(shoulder_angle, 0, 150); // Optimal for use is 150
       elbow_angle =     constrain(elbow_angle,    80, 180); // Optimal for use is 90
       gripper_angle =   constrain(gripper_angle,  0, 120); // Remember tbe 1.5 multiplier for angle
@@ -342,15 +353,31 @@ void loop() {
     }
 
     else if (cmd == "closeArm") {
-      Shoulder.write(SHOULDER_DOWN);
-      Elbow.write(ELBOW_DOWN);
-      Gripper.write(GRIPPER_CLOSED);
+      Elbow.write(ELBOW_CLOSE);
+      if (!isClosed) {
+        isClosed = true;
+        stateTime = elapsedMillis();
+      }
+
+      if (stateTime >= WAIT_TIME_15) {
+          Shoulder.write(SHOULDER_CLOSE);
+      }
+      // Gripper.write(gripper_angle);
     }
 
     else if (cmd == "openArm") {
-      Shoulder.write(SHOULDER_UP);
-      Elbow.write(ELBOW_UP);
-      Gripper.write(GRIPPER_OPEN);
+      Shoulder.write(SHOULDER_OPEN);
+
+      if (isClosed) {
+        isClosed = false;
+        stateTime = elapsedMillis();
+      }
+
+      if (stateTime >= WAIT_TIME_15) {
+        Elbow.write(ELBOW_OPEN);
+      }
+
+      // Gripper.write(GRIPPER_OPEN);
     }
     
     else if (cmd == "craterRun") {
